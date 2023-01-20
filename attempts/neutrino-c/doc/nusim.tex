@@ -1,0 +1,138 @@
+\documentclass[a4paper,fleqn,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\input{preamble}
+\usepackage{minted}
+
+\title{\huge{$\nu$-sim}}
+\author{Mateus Marques}
+
+\begin{document}
+
+\maketitle
+
+\section{Numerical description}
+
+In general:
+$$
+i \dv{\psi}{t} = \H \psi
+\implies
+\dv{}{t}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix}
+=
+\begin{bmatrix}
+\H_\imaginary & \H_\real \\
+-\H_\real & \H_\imaginary
+\end{bmatrix}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix},
+$$
+where $\psi = \real + i \imaginary = (\real_1 + i \imaginary_1, \ldots, \real_n + i \imaginary_n)$, $\H = \H_\real + i \H_\imaginary$ being $\real, \imaginary, \H_\real, \H_\imaginary$ real.
+
+The original complex system of $n$ equations becomes a real system with $2n$ equations.
+
+In the case of Neutrino Oscillations in matter, our hamiltonian is always of the form:
+$$
+\H = \H^0 + \text{diag}\big(V(L), 0, \ldots, 0\big),
+$$
+where $\H^0$ is constant and $V(L) = \sqrt{2} \, G_F N_e(L)$ is the only parameter that depends on the traveled distance $L$ (time also, because $L = ct = t$). $G_F$ is the Fermi constant and $N_e(L)$ is the solar electron density. The hamiltonian $\H$ is so simple because the only neutrino that interacts with solar matter is the neutrino $\nu_e$ of the electron.
+
+The matrix $\H^0$ is simply given by the sandwich:
+$$
+\H^0 = U \, M \, U^\dagger,
+$$
+where $U$ is the neutrino mixing matrix (it's only a unitary matrix, and it has standard \href{https://en.wikipedia.org/wiki/Pontecorvo%E2%80%93Maki%E2%80%93Nakagawa%E2%80%93Sakata_matrix}{parametrization}),
+and $M$ is the diagonal matrix corresponding to the mass eigenvalues of the neutrinos in vacuum (it can be simplified, making one of its entries zero).
+
+Now, the algorithm is very simple:
+\begin{enumerate}
+
+\item Assume $U, M$ and a table $L \times N_e(L)$ of data as input.
+
+\item Using the structures \mintinline{c}{gsl_complex, gsl_matrix_complex, gsl_matrix}
+of the \href{https://www.gnu.org/software/gsl/doc/html/}{GSL Library},
+we easily calculate $\H^0 = \H^0_\real + i\H^0_\imaginary$ by complex matrix operations and then obtain $\H^0_\real$, $\H^0_\imaginary$ by taking the real and imaginary parts with \mintinline{c}{GSL_REAL, GSL_IMAG}.
+
+\item Interpolate $N_e(L)$ using \href{http://www.sns.ias.edu/~jnb/SNdata/sndata.html}{Bahcall's data} and compute $V(L) = \sqrt{2} \, G_F N_e(L)$ for $-R_\odot \leq L \leq R_\odot$, where $R_\odot$ is the solar radius. Here we use the following header and type from GSL:
+\begin{minted}{c}
+#include <gsl/gsl_spline.h>     /* gsl_interp_steffen */
+\end{minted}
+which by the last \href{https://www.gnu.org/software/gsl/doc/html/interp.html#d-interpolation-example-programs}{1D Interpolation Example} seems to be the best spline for the case.
+
+\item Now we simply solve the following ODE numerically and print the results.
+$$
+\dv{}{t}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix}
+=
+\begin{bmatrix}
+\H_\imaginary & \H_\real \\
+-\H_\real & \H_\imaginary
+\end{bmatrix}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix},
+$$
+where $\H_\real = \H^0_\real + \text{diag}\big(V(L), 0, \ldots, 0\big)$ and $\H_\imaginary = \H^0_\imaginary$. For this we use the header
+\begin{minted}{c}
+#include <gsl/gsl_odeiv2.h>.
+\end{minted}
+
+\end{enumerate}
+
+\section{Neutrinos de massa}
+
+Seja $\s{E}$ a base dos neutrinos de interação $e, \lambda, \tau$ e $\s{B}(t)$ a base instantânea dos autoestados de massa $\ket{\nu_1(t)}, \ket{\nu_2(t)}, \ket{\nu_3(t)}$. Seja então $W(t) = [ I ]_{\s{E} \to \s{B}(t)}$ a matriz mudança de base de $\s{E}$ para $\s{B}(t)$. Isto significa que $\ket{\nu_i(t)} = [ I ]_{\s{E} \to \s{B}(t)} \ket{\nu_\alpha}$, para $\alpha = e, \lambda, \tau$ e $i = 1, 2, 3$.
+
+Seja ainda
+$$
+\phi(t) =
+\begin{bmatrix}
+\psi_1(t) \\
+\psi_2(t) \\
+\psi_3(t)
+\end{bmatrix},
+$$
+onde $\ket{\nu(t)} = \psi_1(t) \ket{\nu_1(t)} + \psi_2(t) \ket{\nu_2(t)} + \psi_3(t) \ket{\nu_3(t)}$ está escrito na base $\s{B}(t)$.
+
+Denotando por $\Lambda(t) = \text{diag}\Big(\lambda_1(t), \lambda_2(t), \lambda_3(t)\Big)$
+a matriz diagonal que representa a hamiltoniana na base $\s{B}(t)$, temos então que:
+$$
+i \dv{\phi(t)}{t} = \qty[ - i W(t) \dv{W^\dagger(t)}{t} + \Lambda(t) ] \phi(t).
+$$
+Esta é a mesma equação (9) que o Boechat obteve, antes de substituir os termos.
+
+\n
+
+O problema com ela são os termos $W(t), \dv{W^\dagger(t)}{t}$, que dificultam numericamente. A dificuldade que eu acho que torna essa EDO intratável é que a diagonalização do GSL \textbf{não é necessariamente contínua}. Com isso, quero dizer que os autovetores podem diferir por uma constante multiplicativa complexa. Veja os \href{https://www.gnu.org/software/gsl/doc/html/eigen.html#examples}{exemplos do GSL}.
+
+\n
+
+Caminhos:
+\begin{itemize}
+\item Buscar algo mais analítico? A \href{https://en.wikipedia.org/wiki/Pontecorvo\%E2\%80\%93Maki\%E2\%80\%93Nakagawa\%E2\%80\%93Sakata\_matrix}{mixing matrix} é muito feia.
+\item O que eu tentei fazer? Resolver a EDO na base de interação e mudar para a base $\s{B}(t)$ a todo instante.
+\end{itemize}
+
+\n
+
+Outra ideia é uma equação diferencial para os autovetores:
+$$
+\H \ket{\nu_i} = \lambda_i \ket{\nu_i} \implies
+\dv{\ket{\nu_i}}{t} = \frac{1}{\lambda_i - 1} \dv{t}\qty(\H - \lambda_i I) \ket{\nu_i}.
+$$
+Isso nos dá uma equação para o $W(t)$ mais ou menos assim (provavelmente tá errado, pq tem uma matriz 9x9):
+$$
+\dv{W}{t} =
+\mqty(\dmat{\frac{1}{\lambda_1-1},\frac{1}{\lambda_2-1},\frac{1}{\lambda_3-1}})
+\mqty(\dmat{\dv{t}(\H - \lambda_1 I), \dv{t}(\H - \lambda_2 I), \dv{t}(\H - \lambda_2 I)}) W(t).
+$$
+
+OI GIOVANNI
+
+\end{document}

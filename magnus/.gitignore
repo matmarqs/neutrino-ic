@@ -1,0 +1,15 @@
+**/*.out
+**/*.log
+**/*.aux
+fig/
+doc/_minted-nusim/
+efficient-nu.pdf
+gonzalez.pdf
+main
+a.out
+.*.swp
+old/
+output/
+boechat.py
+8b-distr-check.py
+8b-distr-rough.py

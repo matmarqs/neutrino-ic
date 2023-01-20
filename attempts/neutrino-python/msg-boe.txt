@@ -1,0 +1,8 @@
+[7:59 PM, 6/4/2022] Boechat: Deixa eu dar yma olhada
+[8:02 PM, 6/4/2022] Boechat: Eu tirei o log, multipliquei por N_A e depois coloquei em unidades naturais 1/cm -> eV
+[8:03 PM, 6/4/2022] Boechat: Alem disso, pra o python conseguir fazer as contas eu tive que manipukar as potencias de 10 e tals, daí eu coloquei os eletrons como
+
+n_e = N_e * 10^11
+[8:04 PM, 6/4/2022] Boechat: Onde N_e sao os valores no meu arquivo
+[8:05 PM, 6/4/2022] Boechat: Coloquei no git os arquivos pra vc ler essa msg e acompanhar de forma mais concreta
+[8:05 PM, 6/4/2022] Boechat: Nem me toquei, perdão

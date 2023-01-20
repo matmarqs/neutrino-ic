@@ -1,0 +1,17 @@
+antineutrino-spectra.pdf
+antonio-cross_sec.pdf
+DetwilerThesis.pdf
+efficient-nu.pdf
+funchal2003.pdf
+Gratta_KamLAND_Neutrino2004_record.pdf
+hahn1989.pdf
+JUNO-funchal-resolution_function.pdf
+KamLAND-spectral_distortion.pdf
+LindleyWinslow-DoctorThesis-MUITO_UTIL.pdf
+NICE-reference_model-reactors.pdf
+schreckenbach1985.pdf
+simple_model-reactors-2006.pdf
+stanford-reactors.pdf
+vogel1981.pdf
+vogel1999-cross_sec.pdf
+yuber.pdf

@@ -1,0 +1,10 @@
+2nu.png
+gerado com o ivp.py, erros 1e-7
+t_ini           energ         sobrev[-1]     norm[-1]
+0.00000e+00    6.44000e+06    3.03883e-01    9.96776e-01
+
+3nu_4e-8.png
+t_ini           energ         sobrev[-1]     norm[-1]
+0.00000e+00    6.44000e+06    1.97413e-02    9.98479e-01
+
+o raio mais provavel de 8B eh 0.04426

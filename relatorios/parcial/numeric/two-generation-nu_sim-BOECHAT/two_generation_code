@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri May 13 18:06:39 2022
+
+@author: jaoboe
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+plt.rcParams.update({'font.size': 16})
+from scipy.integrate import odeint
+from scipy.interpolate import UnivariateSpline
+
+
+
+#physical constants (numerical values)
+
+#E = 5.42
+#delta_m_squared = 7.42
+theta = 0.5836 #rad (measured mixture angle for two neutrino approx)
+G_F = 1.1663787
+R_sun = 3.513636
+x = 0 #energia mto grande
+
+#Hamiltonian constants
+
+a = np.sqrt(2)*R_sun*G_F
+b = 10*R_sun*np.sin(theta)*np.cos(theta)*x
+c = 10*R_sun*np.cos(2*theta)*x
+
+
+def ODEs(y,t,fint,dfint): #y : array of functions ; t: evolution parameter
+
+     #functions
+        #real and imaginary components of psi_e
+    psi_e_r = y[0]
+    psi_e_i = y[1]
+        #real and imaginary components of psi_mu
+    psi_mu_r = y[2]
+    psi_mu_i = y[3]
+
+    #edos
+
+    dpsi_er_dt = a*fint(t)*psi_e_i + b*psi_mu_i
+    dpsi_ei_dt = -a*fint(t)*psi_e_r - b*psi_mu_r
+
+    dpsi_mur_dt = b*psi_e_i + c*psi_mu_i
+    dpsi_mui_dt = -b*psi_e_r -c* psi_mu_r
+
+    return [dpsi_er_dt,dpsi_ei_dt,dpsi_mur_dt,dpsi_mui_dt]
+
+
+#solar electron density
+data = pd.read_csv("dados-densidade-solar.csv",
+                   names = ["r","n_e"]) #data from John Bahcall
+
+r =np.float64(data["r"])
+ne =np.float64(data["n_e"])
+
+
+n_e = UnivariateSpline(r, ne,k = 3,s=0)
+
+
+#set initial conditions
+y0 = [1,0,0,0]
+
+#set time range (still need to actually evaluate the time scale for this problem)
+r = np.linspace(0,1000,500)
+
+#integrating the system of diff equations
+y = odeint(ODEs,y0,r,args = (n_e,a))
+
+psi_e_r = y[:,0]
+psi_e_i = y[:,1]
+
+psi_mu_r = y[:,2]
+psi_mu_i = y[:,3]
+
+
+print(psi_e_r[-1]**2+psi_e_i[-1]**2)
+
+fig1,ax1 = plt.subplots(figsize = (10,6))
+ax1.plot(r,psi_e_r**2+psi_e_i**2,label = r"$|\psi_{e}|^2$")
+ax1.set_xlabel(r"$R/(10^3)R_\odot$")
+ax1.set_ylabel(r"$|\psi|^2$")
+ax1.legend()
+
+plt.show()
+
+print('press enter to finish process')
